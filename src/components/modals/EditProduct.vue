@@ -5,7 +5,7 @@
         <input v-model="inputs.name" type="text" placeholder="Название">
         <select v-model="inputs.category">
           <option :value="null">Категория</option>
-          <option v-for="category in categories" :key="category">{{ category }}</option>
+          <option v-for="category in productsStore.categories" :key="category">{{ category }}</option>
         </select>
         <input v-model="inputs.price" type="number" inputmode="numeric" placeholder="Цена">
         <input v-model="inputs.amount" type="number" inputmode="numeric" placeholder="Количество">
@@ -20,11 +20,14 @@
           </div>
 
           <div class="modal__form__images__list">
+            <div v-if="inputs.logo" class="modal__form__images__list__item active"
+              :style="`background-image: url(${inputs.logo})`">
+              <button class="modal__form__images__list__item__remove" @click="inputs.logo = null">
+                <CloseIcon />
+              </button>
+            </div>
             <div v-for="image in inputs.images" :key="image" class="modal__form__images__list__item"
-              :style="`background-image: url(${image})`">
-              <div>
-                <input v-model="inputs.logo" :value="image" type="radio">
-              </div>
+              :style="`background-image: url(${image})`" @click.self="setImageAsLogo(image)">
 
               <button class="modal__form__images__list__item__remove" @click="removeImage(image)">
                 <CloseIcon />
@@ -46,15 +49,17 @@
 </template>
 
 <script setup lang='ts'>
+import DOMPurify from 'dompurify';
 import { ref, reactive } from 'vue';
-import { categories } from "@/consts";
 import { storeToRefs } from 'pinia';
 import { useModalsStore } from '@/store/modals';
+import { useProductsStore } from '@/store/products';
 import { CloseIcon } from '@/assets/icons';
 import Button from '@/components/Button.vue';
 import Modal from "@/components/Modal.vue";
 
 const modalStore = useModalsStore()
+const productsStore = useProductsStore()
 
 const { modal } = storeToRefs(modalStore)
 
@@ -77,14 +82,23 @@ const inputs = reactive({
 
 const addImageInput = ref(null)
 
+const setImageAsLogo = (imageUrl: string) => {
+  if (inputs.logo) {
+    inputs.images.unshift(inputs.logo)
+  }
+
+  inputs.logo = imageUrl
+  inputs.images = inputs.images.filter((item: string) => item != imageUrl)
+}
+
 const addImage = () => {
   const inputValue = addImageInput.value
 
   if (inputs.images.length >= 12) {
-    return
+    return alert("Достигнут максимум изображений")
   }
   if (inputs.images.includes(inputValue)) {
-    return
+    return alert("Уже есть такое изображение")
   } else if (inputValue) {
     inputs.images.push(inputValue)
     addImageInput.value = null
@@ -96,7 +110,7 @@ const removeImage = (imageUrl: string) => {
     inputs.logo = null
   }
 
-  inputs.images.modal__form__images__list__item__remove((item: string) => item !== imageUrl)
+  inputs.images = inputs.images.filter((item: string) => item !== imageUrl)
 }
 
 const submit = () => {
@@ -108,17 +122,13 @@ const submit = () => {
     return alert("Неправильная цена")
   } else if (!inputs.amount || inputs.price <= 0) {
     return alert("Добавьте количество товаров")
-  } else if (!inputs.description) {
-    let descriptionText = `${inputs.description}`
-
-    // XSS 
-    descriptionText = descriptionText
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;')
-      .replace(/'/g, '&#039;');
+  } else if (inputs.images.length && !inputs.logo) {
+    return alert("Выберите основное фото, оно будет отображаться в карточке товара")
   }
+
+  // XSS 
+  const descriptionText = `${inputs.description}`
+  inputs.description = DOMPurify.sanitize(descriptionText);
 }
 </script>
 
@@ -170,6 +180,7 @@ const submit = () => {
         &>button {
           padding: 0 8px;
           font-size: 16px;
+          cursor: pointer;
         }
       }
 
@@ -182,7 +193,7 @@ const submit = () => {
 
         &__item {
           display: flex;
-          justify-content: space-between;
+          justify-content: flex-end;
           width: 100%;
           aspect-ratio: 1/1;
           padding: 6px;
@@ -192,10 +203,12 @@ const submit = () => {
           border-radius: 4px;
           overflow: hidden;
 
-          & input {
-            width: 20px;
-            height: 20px;
-            cursor: pointer;
+          &.active {
+            border: 2px solid var(--primary);
+          }
+
+          &:not(.active):hover {
+            border: 1px solid var(--primary-hover);
           }
 
           &__remove {

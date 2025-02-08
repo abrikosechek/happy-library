@@ -1,12 +1,21 @@
 <template>
   <div class="container">
-    <div class="product">
+    <div v-if="product" class="product">
       <router-link to="/" class="product__return">
         <span>&lt;</span> Ha главную
       </router-link>
 
       <section class="product__content">
-        <SWIPER class="product__content__slider"></SWIPER>
+        <Swiper class="product__content__slider" :modules="swiperModules" navigation :pagination="{ clickable: true }">
+          <SwiperSlide>
+            <div class="product__content__slider__item" :style="`background-image: url(${product.logo})`" />
+          </SwiperSlide>
+          <SwiperSlide v-for="image in product.images" :key="image">
+            <div class="product__content__slider__item" :style="`background-image: url(${image})`" />
+          </SwiperSlide>
+
+        </Swiper>
+
         <div class="product__content__about">
           <Badge>
             {{ product.category }}
@@ -23,18 +32,33 @@
 </template>
 
 <script setup lang='ts'>
+import { onBeforeMount, ref } from 'vue';
+import { useRoute } from 'vue-router';
 import { Product } from '@/consts';
+import { useProductsStore } from '../store/products';
 import Badge from '@/components/Badge.vue';
 
-const product: Product = {
-  id: 12,
-  logo: ["https://img.imageboss.me/fourwinds/width/425/dpr:2/shop/products/blackmonukka.jpg?v=1729795625", "https://www.gurneys.com/cdn/shop/files/61626A.webp?v=1729087445"],
-  name: "Виноградинки",
-  category: "еда",
-  amount: 43244321424,
-  price: 299.99,
-  description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aenean tempus lacinia sem ac sollicitudin. Pellentesque sodales, nunc non euismod elementum, nibh lacus placerat metus, at suscipit enim felis eu tortor. In hac habitasse platea dictumst. Aliquam pulvinar fringilla nulla, eget lobortis mauris luctus eget. Etiam porta, tortor at lobortis gravida, diam nulla ullamcorper arcu, egestas consequat tortor risus vel ante. Maecenas eget maximus nibh, id gravida ligula. Nam dictum tincidunt ex eu sodales. Praesent a justo lacinia, gravida elit pellentesque, facilisis nisl. Nam fringilla sollicitudin aliquet. Morbi at erat eu massa rhoncus blandit id congue magna. Phasellus vehicula ante et sem luctus sollicitudin. Aenean id augue magna. Vivamus posuere et lectus a ornare. Curabitur eleifend purus sed aliquet rutrum. Nullam scelerisque pretium odio, ut placerat quam aliquet ac.",
-}
+// Import Swiper Vue.js components
+import { Swiper, SwiperSlide } from 'swiper/vue';
+import { Navigation, Pagination } from 'swiper/modules';
+// Import Swiper styles
+import 'swiper/css';
+import 'swiper/css/navigation';
+import 'swiper/css/pagination';
+
+const swiperModules = [Navigation, Pagination]
+
+const route = useRoute()
+
+const productsStore = useProductsStore()
+
+const product = ref<Product | null>(null)
+
+onBeforeMount(async () => {
+  const productById = await productsStore.loadProduct(Number(route.params.id))
+  console.log(productById)
+  product.value = productById
+})
 </script>
 
 <style scoped lang='scss'>
@@ -65,12 +89,21 @@ const product: Product = {
   &__content {
     display: flex;
     width: 800px;
-    gap: 8px;
+    gap: 16px;
 
     &__slider {
       flex: 0 0 auto;
       width: 300px;
       height: 345px;
+      border-radius: 12px;
+
+      &__item {
+        width: 100%;
+        height: 100%;
+        background-size: cover;
+        background-position: center center;
+        background-repeat: no-repeat;
+      }
     }
 
     &__about {

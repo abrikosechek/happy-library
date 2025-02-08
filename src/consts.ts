@@ -8,6 +8,3 @@ export interface Product {
   price: number
   description: string
 }
-
-export type Category = string
-export const categories: Category[] = ["еда", "одежда", "гантеля", "инопланетное"]
