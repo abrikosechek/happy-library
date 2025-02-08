@@ -1,0 +1,22 @@
+@use "./modules/colors";
+@use "./modules/fonts";
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: var(--bg);
+  padding-bottom: 90px;
+  font-family: Inter, sans-serif, Helvetica, Arial;
+  font-weight: 500;
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 40px;
+}
