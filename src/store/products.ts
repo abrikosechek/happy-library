@@ -2,10 +2,14 @@ import { defineStore } from "pinia";
 import type { Product, Category } from '@/consts';
 import axios from "@/plugins/axios";
 
+type ProductWithoutId = {
+  [K in Exclude<keyof Product, 'id'>]: Product[K];
+};
+
 export const useProductsStore = defineStore("products", {
   state: () => ({
     products: [] as Product[],
-    categories: [] as string[]
+    categories: [] as Category[]
   }),
   actions: {
     loadProducts() {
@@ -23,7 +27,7 @@ export const useProductsStore = defineStore("products", {
         }).catch((err: any) => reject(err))
       })
     },
-    editProduct(id: number | string, data: Product) {
+    editProduct(id: number | string, data: ProductWithoutId) {
       return new Promise((resolve, reject) => {
         if (!data) reject("Нет входных данных")
 
@@ -39,7 +43,7 @@ export const useProductsStore = defineStore("products", {
         }).catch((err: any) => reject(err))
       })
     },
-    createProduct(data: Product) {
+    createProduct(data: ProductWithoutId) {
       return new Promise((resolve, reject) => {
         axios.post(`/inventories`, data).then((result: any) => {
           this.products.push(result.data)

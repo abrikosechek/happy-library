@@ -1,7 +1,7 @@
 <template>
   <Modal>
     <div class="modal">
-      <p>Удалить продукт <span> {{ modalStore.modal.data.title }} </span>?</p>
+      <p>Удалить продукт <span> {{ modalStore.modal?.data.title }} </span>?</p>
 
       <div class="modal__buttons">
         <Button color="error" @click="submit()">Удалить</Button>
@@ -25,7 +25,7 @@ const closeModal = () => {
 }
 
 const submit = () => {
-  productsStore.deleteProduct(modalStore.modal.data.id)
+  productsStore.deleteProduct(modalStore.modal?.data.id)
     .then(() => closeModal())
     .catch((err: any) => alert(err))
 }

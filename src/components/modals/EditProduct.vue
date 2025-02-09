@@ -5,7 +5,7 @@
         <input v-model="inputs.title" type="text" placeholder="Название">
         <select v-model="inputs.category">
           <option :value="null">Категория</option>
-          <option v-for="category in productsStore.categories" :key="category">{{ category.title }}</option>
+          <option v-for="category in productsStore.categories" :key="category.id">{{ category.title }}</option>
         </select>
         <input v-model="inputs.price" type="number" inputmode="numeric" placeholder="Цена">
         <input v-model="inputs.count" type="number" inputmode="numeric" placeholder="Количество">
@@ -38,9 +38,9 @@
       </div>
 
       <div class="modal__buttons">
-        <Button color="primary" @click="submit()">{{ modal.data ? "Изменить" : "Создать" }}</Button>
+        <Button color="primary" @click="submit()">{{ modal?.data ? "Изменить" : "Создать" }}</Button>
         <Button color="primary-outline" @click="closeModal()">Отмена</Button>
-        <Button v-if="modal.data" class="modal__buttons__remove" color="error" @click="deleteProduct()">
+        <Button v-if="modal?.data" class="modal__buttons__remove" color="error" @click="deleteProduct()">
           Удалить
         </Button>
       </div>
@@ -131,8 +131,8 @@ const submit = () => {
   inputs.description = DOMPurify.sanitize(descriptionText);
 
   // submit request
-  if (modal.value.data) {
-    productsStore.editProduct(modal.value.data.id, inputs)
+  if (modal.value?.data) {
+    productsStore.editProduct(modal.value?.data.id, inputs)
       .then(() => closeModal())
       .catch((err: any) => alert(err))
   } else {
@@ -146,8 +146,8 @@ const deleteProduct = () => {
   modalStore.setModal({
     name: "RemoveProduct",
     data: {
-      id: modal.value.data.id,
-      title: modal.value.data.title
+      id: modal.value?.data.id,
+      title: modal.value?.data.title
     },
   })
 }

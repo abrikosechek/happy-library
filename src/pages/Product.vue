@@ -6,7 +6,8 @@
       </router-link>
 
       <section class="product__content">
-        <Swiper class="product__content__slider" :modules="swiperModules" loop navigation :pagination="{ clickable: true }">
+        <Swiper class="product__content__slider" :modules="swiperModules" loop navigation
+          :pagination="{ clickable: true }">
           <SwiperSlide>
             <div class="product__content__slider__item" :style="`background-image: url(${product.avatar})`" />
           </SwiperSlide>
@@ -34,7 +35,7 @@
 <script setup lang='ts'>
 import { onBeforeMount, ref } from 'vue';
 import { useRoute } from 'vue-router';
-import { Product } from '@/consts';
+import type { Product } from '@/consts';
 import { useProductsStore } from '../store/products';
 import Badge from '@/components/Badge.vue';
 
@@ -55,7 +56,7 @@ const productsStore = useProductsStore()
 const product = ref<Product | null>(null)
 
 onBeforeMount(async () => {
-  const productById = await productsStore.loadProduct(Number(route.params.id))
+  const productById: any = await productsStore.loadProduct(Number(route.params.id))
   console.log(productById)
   product.value = productById
 })

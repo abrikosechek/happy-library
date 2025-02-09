@@ -58,7 +58,7 @@ const nextPage = () => {
   model.value++
 }
 
-watch(() => props.pages, (newValue, oldValue) => {
+watch(() => props.pages, (newValue) => {
   if (!model.value) return
   if(newValue < model.value) {
     model.value = newValue
