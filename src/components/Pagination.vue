@@ -14,7 +14,7 @@
 </template>
 
 <script setup lang='ts'>
-import { computed } from 'vue';
+import { computed, watch } from 'vue';
 const props = defineProps<{
   pages: number
 }>()
@@ -57,6 +57,13 @@ const nextPage = () => {
   if (model.value >= props.pages) return
   model.value++
 }
+
+watch(() => props.pages, (newValue, oldValue) => {
+  if (!model.value) return
+  if(newValue < model.value) {
+    model.value = newValue
+  }
+})
 </script>
 
 <style scoped lang='scss'>
