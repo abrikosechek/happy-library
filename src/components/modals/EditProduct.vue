@@ -2,13 +2,13 @@
   <Modal>
     <div class="modal">
       <div class="modal__form">
-        <input v-model="inputs.name" type="text" placeholder="Название">
+        <input v-model="inputs.title" type="text" placeholder="Название">
         <select v-model="inputs.category">
           <option :value="null">Категория</option>
-          <option v-for="category in productsStore.categories" :key="category">{{ category }}</option>
+          <option v-for="category in productsStore.categories" :key="category">{{ category.title }}</option>
         </select>
         <input v-model="inputs.price" type="number" inputmode="numeric" placeholder="Цена">
-        <input v-model="inputs.amount" type="number" inputmode="numeric" placeholder="Количество">
+        <input v-model="inputs.count" type="number" inputmode="numeric" placeholder="Количество">
         <textarea v-model="inputs.description" type="text" placeholder="Название" maxlength="255" />
 
         <div class="modal__form__images">
@@ -20,13 +20,13 @@
           </div>
 
           <div class="modal__form__images__list">
-            <div v-if="inputs.logo" class="modal__form__images__list__item active"
-              :style="`background-image: url(${inputs.logo})`">
-              <button class="modal__form__images__list__item__remove" @click="inputs.logo = null">
+            <div v-if="inputs.avatar" class="modal__form__images__list__item active"
+              :style="`background-image: url(${inputs.avatar})`">
+              <button class="modal__form__images__list__item__remove" @click="inputs.avatar = null">
                 <CloseIcon />
               </button>
             </div>
-            <div v-for="image in inputs.images" :key="image" class="modal__form__images__list__item"
+            <div v-for="image in inputs.gallery" :key="image" class="modal__form__images__list__item"
               :style="`background-image: url(${image})`" @click.self="setImageAsLogo(image)">
 
               <button class="modal__form__images__list__item__remove" @click="removeImage(image)">
@@ -40,7 +40,7 @@
       <div class="modal__buttons">
         <Button color="primary" @click="submit()">{{ modal.data ? "Изменить" : "Создать" }}</Button>
         <Button color="primary-outline" @click="closeModal()">Отмена</Button>
-        <Button v-if="modal.data" class="modal__buttons__remove" color="error" @click="closeModal()">
+        <Button v-if="modal.data" class="modal__buttons__remove" color="error" @click="deleteProduct()">
           Удалить
         </Button>
       </div>
@@ -71,64 +71,85 @@ const closeModal = () => {
 const modalObjectDataCopy = { ...modal.value?.data }
 
 const inputs = reactive({
-  name: modalObjectDataCopy.name || null as string | null,
+  title: modalObjectDataCopy.title || null as string | null,
   category: modalObjectDataCopy.category || null as string | null,
   price: modalObjectDataCopy.price || null as number | null,
-  amount: modalObjectDataCopy.amount || null as number | null,
+  count: modalObjectDataCopy.count || null as number | null,
   description: modalObjectDataCopy.description || null as string | null,
-  logo: modalObjectDataCopy.logo || null as string | null,
-  images: modalObjectDataCopy.images || [] as string[],
+  avatar: modalObjectDataCopy.avatar || null as string | null,
+  gallery: modalObjectDataCopy.gallery || [] as string[],
 })
 
 const addImageInput = ref(null)
 
 const setImageAsLogo = (imageUrl: string) => {
-  if (inputs.logo) {
-    inputs.images.unshift(inputs.logo)
+  if (inputs.avatar) {
+    inputs.gallery.unshift(inputs.avatar)
   }
 
-  inputs.logo = imageUrl
-  inputs.images = inputs.images.filter((item: string) => item != imageUrl)
+  inputs.avatar = imageUrl
+  inputs.gallery = inputs.gallery.filter((item: string) => item != imageUrl)
 }
 
 const addImage = () => {
   const inputValue = addImageInput.value
 
-  if (inputs.images.length >= 12) {
+  if (inputs.gallery.length >= 12) {
     return alert("Достигнут максимум изображений")
   }
-  if (inputs.images.includes(inputValue)) {
+  if (inputs.gallery.includes(inputValue)) {
     return alert("Уже есть такое изображение")
   } else if (inputValue) {
-    inputs.images.push(inputValue)
+    inputs.gallery.push(inputValue)
     addImageInput.value = null
   }
 }
 
 const removeImage = (imageUrl: string) => {
-  if (imageUrl === inputs.logo) {
-    inputs.logo = null
+  if (imageUrl === inputs.avatar) {
+    inputs.avatar = null
   }
 
-  inputs.images = inputs.images.filter((item: string) => item !== imageUrl)
+  inputs.gallery = inputs.gallery.filter((item: string) => item !== imageUrl)
 }
 
 const submit = () => {
-  if (!inputs.name || inputs.name.length < 3 || /^\d+$/.test(inputs.name) || [""].includes(inputs.name)) {
+  if (!inputs.title || inputs.title.length < 3 || /^\d+$/.test(inputs.title) || [""].includes(inputs.title)) {
     return alert("Неправильное название товара")
   } else if (!inputs.category) {
     return alert("Выберите категорию")
   } else if (!inputs.price || inputs.price <= 0) {
     return alert("Неправильная цена")
-  } else if (!inputs.amount || inputs.price <= 0) {
+  } else if (!inputs.count || inputs.price <= 0) {
     return alert("Добавьте количество товаров")
-  } else if (inputs.images.length && !inputs.logo) {
+  } else if (!inputs.avatar) {
     return alert("Выберите основное фото, оно будет отображаться в карточке товара")
   }
 
   // XSS 
   const descriptionText = `${inputs.description}`
   inputs.description = DOMPurify.sanitize(descriptionText);
+
+  // submit request
+  if (modal.value.data) {
+    productsStore.editProduct(modal.value.data.id, inputs)
+      .then(() => closeModal())
+      .catch((err: any) => alert(err))
+  } else {
+    productsStore.createProduct(inputs)
+      .then(() => closeModal())
+      .catch((err: any) => alert(err))
+  }
+}
+
+const deleteProduct = () => {
+  modalStore.setModal({
+    name: "RemoveProduct",
+    data: {
+      id: modal.value.data.id,
+      title: modal.value.data.title
+    },
+  })
 }
 </script>
 
@@ -201,10 +222,12 @@ const submit = () => {
           background-position: center center;
           background-repeat: no-repeat;
           border-radius: 4px;
+          cursor: pointer;
           overflow: hidden;
 
           &.active {
             border: 2px solid var(--primary);
+            cursor: default;
           }
 
           &:not(.active):hover {

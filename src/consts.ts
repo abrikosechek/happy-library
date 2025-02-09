@@ -1,10 +1,15 @@
 export interface Product {
-  id: number
-  logo: string
-  images: string[]
-  name: string
+  id: number | string
+  avatar: string
+  gallery: string[]
+  title: string
   category: string
-  amount: number
-  price: number
+  count: number | string
+  price: number | string
   description: string
+}
+
+export interface Category {
+  title: string,
+  id: number | string
 }

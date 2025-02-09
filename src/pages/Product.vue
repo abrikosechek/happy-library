@@ -6,11 +6,11 @@
       </router-link>
 
       <section class="product__content">
-        <Swiper class="product__content__slider" :modules="swiperModules" navigation :pagination="{ clickable: true }">
+        <Swiper class="product__content__slider" :modules="swiperModules" loop navigation :pagination="{ clickable: true }">
           <SwiperSlide>
-            <div class="product__content__slider__item" :style="`background-image: url(${product.logo})`" />
+            <div class="product__content__slider__item" :style="`background-image: url(${product.avatar})`" />
           </SwiperSlide>
-          <SwiperSlide v-for="image in product.images" :key="image">
+          <SwiperSlide v-for="image in product.gallery" :key="image">
             <div class="product__content__slider__item" :style="`background-image: url(${image})`" />
           </SwiperSlide>
 
@@ -21,8 +21,8 @@
             {{ product.category }}
           </Badge>
 
-          <h1 class="product__content__about__name">{{ product.name }}</h1>
-          <p class="product__content__about__amount">Осталось: {{ product.amount }}</p>
+          <h1 class="product__content__about__name">{{ product.title }}</h1>
+          <p class="product__content__about__amount">Осталось: {{ product.count }}</p>
           <p class="product__content__about__price">$ {{ product.price }}</p>
           <p class="product__content__about__description">{{ product.description }}</p>
         </div>

@@ -1,14 +1,14 @@
 <template>
   <div class="card">
-    <router-link :to="`/product/${id}`" class="card__logo" :style="`background-image: url(${logo})`" />
+    <router-link :to="`/product/${id}`" class="card__logo" :style="`background-image: url(${avatar})`" />
 
     <router-link :to="`/product/${id}`" class="card__content">
       <Badge>
         {{ category }}
       </Badge>
 
-      <h2 class="card__content__name">{{ name }}</h2>
-      <p class="card__content__amount">Осталось: {{ amount }}</p>
+      <h2 class="card__content__name">{{ title }}</h2>
+      <p class="card__content__amount">Осталось: {{ count }}</p>
       <p class="card__content__price">$ {{ price }}</p>
     </router-link>
 
@@ -30,17 +30,23 @@ import Badge from '@/components/Badge.vue';
 const modalStore = useModalsStore()
 
 interface Props {
-  id: number
-  logo: string | null | undefined
-  name: string
+  id?: number | string
+  avatar: string
+  gallery?: string[]
+  title: string
   category: string
-  amount: number
-  price: number
+  count: number | string
+  price: number | string
+  description?: string
 }
 
 const props = defineProps<Props>()
 
 const editProduct = () => {
+  modalStore.setModal({
+    name: "EditProduct",
+    data: props,
+  })
 }
 
 const removeProduct = () => {
@@ -48,7 +54,7 @@ const removeProduct = () => {
     name: "RemoveProduct",
     data: {
       id: props.id,
-      name: props.name
+      title: props.title
     },
   })
 }

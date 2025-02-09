@@ -1,10 +1,10 @@
 <template>
   <Modal>
     <div class="modal">
-      <p>Удалить продукт <span> {{ modalStore.modal.data.name }} </span>?</p>
+      <p>Удалить продукт <span> {{ modalStore.modal.data.title }} </span>?</p>
 
       <div class="modal__buttons">
-        <Button color="error">Удалить</Button>
+        <Button color="error" @click="submit()">Удалить</Button>
         <Button color="primary-outline" @click="closeModal()">Отмена</Button>
       </div>
     </div>
@@ -12,14 +12,22 @@
 </template>
 
 <script setup lang='ts'>
+import { useProductsStore } from '@/store/products';
 import { useModalsStore } from '@/store/modals';
 import Button from '@/components/Button.vue';
 import Modal from "@/components/Modal.vue";
 
+const productsStore = useProductsStore()
 const modalStore = useModalsStore()
 
 const closeModal = () => {
   modalStore.setModal(null)
+}
+
+const submit = () => {
+  productsStore.deleteProduct(modalStore.modal.data.id)
+    .then(() => closeModal())
+    .catch((err: any) => alert(err))
 }
 </script>
 

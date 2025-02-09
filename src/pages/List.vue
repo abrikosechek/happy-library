@@ -7,27 +7,48 @@
         <Button @click="addProduct()">+ добавить</Button>
       </div>
 
-      <div class="list__grid">
-        <ProductCard v-for="index in 89" :key="index" :id="index"
-          logo="https://storage.googleapis.com/cdn-activ-inside-site-20/production/2023/02/Grape-pomace.png"
-          name="ВиноградикВиноградикВиноградик" category="еда" :amount="724" :price="299.99" />
+      <Pagination v-model="currentPage" :pages="pagesCount" />
+
+      <div v-if="products" class="list__grid">
+        <ProductCard v-for="product in displayedProducts" :key="product.id" v-bind="product" />
       </div>
+
+      <Pagination v-model="currentPage" :pages="pagesCount" />
     </section>
   </div>
 </template>
 
 <script setup lang='ts'>
+import { ref, computed } from 'vue';
+import { storeToRefs } from 'pinia';
+import { useProductsStore } from '@/store/products';
 import { useModalsStore } from '@/store/modals';
+import Pagination from '@/components/Pagination.vue';
 import Button from '@/components/Button.vue';
 import ProductCard from '@/components/ProductCard.vue';
 
+const pageLength = 20
+
+const productsStore = useProductsStore()
 const modalStore = useModalsStore()
+
+const { products } = storeToRefs(productsStore)
 
 const addProduct = () => {
   modalStore.setModal({
     name: "EditProduct"
   })
 }
+
+const currentPage = ref<number>(1)
+const pagesCount = computed(() => {
+  const productsArrayPages = Math.ceil(products.value.length / pageLength)
+  return Math.max(productsArrayPages, 1)
+})
+const displayedProducts = computed(() => {
+  console.log((currentPage.value - 1) * pageLength, pageLength)
+  return products.value.slice((currentPage.value - 1) * pageLength, currentPage.value * pageLength)
+})
 </script>
 
 <style scoped lang='scss'>
